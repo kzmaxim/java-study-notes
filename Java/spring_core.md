@@ -304,9 +304,9 @@ public static ClassicalMusic getInstance() {  // фабричный метод
 ```xml
 <bean id="classicalMusicBean"  
       class="com.maxim.ClassicalMusic"  
-      factory-method="getInstance"  
+	  factory-method="getInstance" // указываем фабричный метод
       init-method="doMyInit"  
-      destroy-method="doMyDestroy">  <?-- указываем фабричный метод /--?>
+      destroy-method="doMyDestroy">  
 </bean>
 ```
 
