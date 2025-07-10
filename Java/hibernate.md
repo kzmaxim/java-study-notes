@@ -10,6 +10,13 @@
 
 [![hibernate](https://i0.wp.com/proselyte.net/wp-content/uploads/2016/02/hibernate-768x260.jpg?resize=700%2C237)](https://i0.wp.com/proselyte.net/wp-content/uploads/2016/02/hibernate.jpg)
 
+
+![[Pasted image 20250705123751.png]]
+
+
+![[Pasted image 20250705124014.png]]
+
+
 Какие же преимущества даёт нам использование Hibernate?
 
 - Обеспечивает простой API для записи и получения Java-объектов в/из БД.
@@ -66,6 +73,14 @@ Hibernate также может работать в связке с такими
 
 Сессия используется для получения физического соединения с БД. Обычно, сессия создаётся при необходимости, а после этого закрывается. Это связано с тем, что эти объекты крайне легковесны. Чтобы понять, что это такое, модно сказать, что создание, чтение, изменение и удаление объектов происходит через объект Session.
 
+![[Pasted image 20250705124128.png]]
+
+![[Pasted image 20250705124228.png]]
+
+![[Pasted image 20250705124505.png]]
+
+
+
 **Query**
 
 Этот объект использует HQL или SQL для чтения/записи данных из/в БД. Экземпляр запроса используется для связывания параметров запроса, ограничения количества результатов, которые будут возвращены и для выполнения запроса.
@@ -108,6 +123,22 @@ https://javarush.com/quests/lectures/questhibernate.level09.lecture04
     <!-- DB schema will be updated if needed -->  
     <!-- <property name="hibernate.hbm2ddl.auto">update</property> -->  </session-factory>  
 </hibernate-configuration>
+```
+
+
+Также конфигурационный файл для Hibernate можно создать в папке `resources` а именно файл `hibernate.properties`:
+```shell
+# Конфигурация источника данных (Data source)  
+hibernate.driver_class=org.postgresql.Driver  
+hibernate.connection.url=jdbc:postgresql://localhost:5432/hibernate_demo_db  
+hibernate.connection.username=maxim  
+hibernate.connection.password=3maxim14  
+  
+  
+# Конфигурация Hibernate  
+hibernate.dialect=org.hibernate.dialect.PostgreSQL10Dialect  
+hibernate.show_sql=true  
+hibernate.current_session_context_class=thread
 ```
 
 
@@ -163,7 +194,7 @@ try (SessionFactory sessionFactory = configuration.buildSessionFactory();
 
 
 
-## Entity
+# Entity
 
 
 Если мы хотим, чтобы экземпляры (объекты) Java-класса в будущем сохранялся в таблице БД, то мы называем их “сохраняемые классы” (persistent class). Для того, чтобы сделать работу с Hibernate максимально удобной и эффективной, мы следует использовать программную модель Простых Старых Java Объектов (Plain Old Java Object – POJO).
@@ -252,7 +283,7 @@ insert
 `session.getTransaction().commit();` - завершение транзакции
 
 
-### Получение объектов
+# Получение объектов
 Осуществляется при помощи такой конструкции:
 ```java
 Класс имя = session.get(Класс.class, ID);
@@ -269,8 +300,23 @@ public User getUserById(Integer id) {
 ```
 
 
+Вот еще пример получения сущности:
+```java
+Configuration configuration = new Configuration().addAnnotatedClass( Person.class );  
+try (SessionFactory sessionFactory = configuration.buildSessionFactory();  
+Session session = sessionFactory.openSession()) {  
+  
+    session.beginTransaction();  
+  
+    Person person = session.get(Person.class, 1);  
+    System.out.println(person.getName());  
+    System.out.println(person.getAge());  
+  
+    session.getTransaction().commit();  
+}
+```
 
-### Сохранение (добавление) объектов
+# Сохранение (добавление) объектов
 
 Если ты хочешь сохранить свой объект в базу данных, то на уровне SQL будет выполнен запрос ==INSERT==. Поэтому твои действия нужно выполнять в виде отдельной транзакции. Кроме того, для сохранения лучше использовать метод `persist()` объекта **session**.
 
@@ -298,7 +344,55 @@ public boolean saveUser(User user) {
 Также у объекта **Session** есть метод `save()`, который выполняет аналогичную функцию. Просто метод `save()` — это старый стандарт Hibernate, а метод `persist()` — это JPA-стандарт.
 
 
-### Удаление объектов
+Вот пример с методом `save()`:
+```java
+Configuration configuration = new Configuration().addAnnotatedClass( Person.class );  
+try (SessionFactory sessionFactory = configuration.buildSessionFactory();  
+Session session = sessionFactory.openSession()) {  
+  
+    session.beginTransaction();  
+  
+    Person person1 = new Person("Vasya", 20);  
+    Person person2 = new Person("Sasha", 21);  
+    Person person3 = new Person("Glenn", 22);  
+  
+    session.save( person1 );  
+    session.save( person2 );  
+    session.save( person3 );  
+  
+    session.getTransaction().commit();  
+}
+```
+
+
+Отличие к том что `save()` возвращает идентификатор но не сохраняет объект в persistence context, а метод `persist()` ничего не возвращает но сохраняет в persistence context
+
+В целом более предпочтительно использовать `persist()`
+
+
+
+# Обновление и удаление объектов
+
+
+## Обновление
+
+
+Чтобы обновить значение в БД достаточно получить этот объект и вызвать соответствующий сеттер:
+```java
+try (SessionFactory sessionFactory = configuration.buildSessionFactory();  
+Session session = sessionFactory.openSession()) {  
+  
+    session.beginTransaction();  
+  
+    Person person = session.get(Person.class, 2);  
+    person.setName("Alexandra");  // hibernate сам отправить update запрос
+  
+    session.getTransaction().commit();  
+}
+```
+
+
+## Удаление
 
 Если вы хотите удалить существующей объект, то сделать это очень просто. Для этого у объекта session есть специальный метод — `remove()`.
 
@@ -323,9 +417,67 @@ public boolean removeUser(User user) {
 ```
 
 
+Также удалить можно с помощью метода `delete`:
+```java
+try (SessionFactory sessionFactory = configuration.buildSessionFactory();  
+    Session session = sessionFactory.openSession()) {  
+  
+        session.beginTransaction();  
+  
+        Person person = session.get(Person.class, 2);  
+        session.delete(person);  
+  
+        session.getTransaction().commit();  
+    }  
+}
+```
 
 
-## Type Converters
+Разницы между ними нет. Просто `remove()` это стандарт JPA, а `delete()` - это метод Hibernate
+
+
+
+# Язык HQL
+
+
+![[Pasted image 20250705174445.png]]
+
+
+![[Pasted image 20250705174533.png]]
+
+
+
+![[Pasted image 20250705174658.png]]
+
+
+
+Пример с самым простым HQL-запросом: 
+```java
+List<Person> people = session.createQuery("from Person").getResultList();  
+  
+for (Person person : people) {  
+    System.out.println(person);  
+}
+```
+
+
+Вот пример с условием:
+```java
+List<Person> people = session.createQuery("from Person where age > 20").getResultList();
+```
+
+
+А вот с регулярным выражением:
+```java
+List<Person> people = session.createQuery("from Person where name like 'G%'").getResultList();
+```
+
+
+
+
+
+
+# Type Converters
 
 
 Hibernate сам умеет преобразовывать типы данных. Но только те которые определены в нем. Если нужно преобразовывать кастомный тип данных то нужно реализовать интерфейс `UserType`
@@ -627,6 +779,12 @@ public class HibernateUtil {
 
 ### Transient
 
+
+![[Pasted image 20250706182721.png]]
+
+
+
+
 Это просто POJO объект в Java. Изменения на нем никак не влияют на базу данных.
 
 Если некий клиентский код работает с объектом со статусом Transient, то их взаимодействие можно описать супер-простой схемой:
@@ -635,6 +793,17 @@ public class HibernateUtil {
 
 
 ### Persistent
+
+
+![[Pasted image 20250706182833.png]]
+
+
+![[Pasted image 20250706183037.png]]
+
+
+
+
+
 
 Следующий самый распространенный случай – это объекты, связанные с движком Hibernate. Их статус называют Persistent (или же Managed). Способов получить объект с таким статусом ровно два:
 
@@ -648,11 +817,33 @@ public class HibernateUtil {
 
 ### Detached
 
+
+
+![[Pasted image 20250706183128.png]]
+
+
+
+
+
 Следующее состояние – это когда объект был отсоединен от сессии. То есть когда-то объект был присоединен к сессии Hibernate, но затем сессия закрылась или транзакция завершилась, и Hibernate больше не следит за этим объектом.
 
 Новая схема взаимодействия кода и объекта будет выглядеть так:
 
 ![](https://cdn.javarush.com/images/article/cd4dfefa-63c3-4026-b48a-b7b2cf5b95e0/800.webp)
+
+
+
+### Removed
+
+
+![[Pasted image 20250706183319.png]]
+
+
+
+
+
+
+
 
 
 
@@ -963,7 +1154,7 @@ Hibernate Proxy — это хитрый способ сэкономить рес
 
 
 
-## Cascade Types
+# Cascade Types (Каскадирование)
 
 
 `@ManyToOne(cascade = CascadeType.DETACH)` - так мы указываем если мы удаляем сущность то и связанная сущность также удаляется
@@ -1058,8 +1249,96 @@ session.persist(user);
 
 
 
-## OneToMany
+### Еще один пример: мы создали человека и сущность и хотим чтобы при сохранении человека также в базу сохранялись и связанные с ним сущности
+
+Для начала нужно установить каскадирование в классе Person:
+```java
+@OneToMany(mappedBy = "owner", cascade=CascadeType.PERSIST)  
+private List<Item> items;
+```
+
+И теперь можно спокойно сохранять человека с помощью метода `persist()` зная, что также сохранятся сущности которые связаны с ним:
+```java
+session.beginTransaction();  
+  
+Person person = new Person("Some name", 30);  
+  
+Item item = new Item("Some item", person);  
+  
+person.setItems(new ArrayList<>(Collections.singletonList(item)));  
+  
+session.persist(person);  
+  
+session.getTransaction().commit();
+```
+
+
+
+И Hibernate в итоге делает 2 запроса в базу, хоть мы и указали что сохраняем только person:
+```sql
+Hibernate: insert into person (age, name) values (?, ?)
+Hibernate: insert into item (item_name, person_id) values (?, ?)
+```
+
+
+
+![[Pasted image 20250706184728.png]]
+
+
+Но пока в моем коде каскадирование работает только с помощью метода `perstist()`. Чтобы работало также с методом `save()` нужно поставить аннотацию `@Cascade()` в класс Person:
+```java
+@OneToMany(mappedBy = "owner")  
+@Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)  
+private List<Item> items;
+```
+
+
+
+Чтобы каскадирование работало также на какие-либо другие методы, можно в фигурных скобках в аннотации `@Cascade` указать эти методы
+
+
+
+### Пример с созданием одного человека и нескольких связанных с ним товаров.
+
+Сначала создадим метод в Person который добавляем товар в список и назначает товару владельца:
+```java
+public void addItem(Item item) {  
+    if (this.items == null) {  
+        this.items = new ArrayList<>();  
+    }  
+    this.items.add(item);  
+    item.setOwner(this);  
+}
+```
+
+
+И далее уже создаем человека и товары и сохраняем все в БД:
+```java
+session.beginTransaction();  
+  
+Person person = new Person("Person test", 33);  
+  
+person.addItem(new Item("Item 1"));  
+person.addItem(new Item("Item 2"));  
+person.addItem(new Item("Item 3"));  
+  
+session.save(person);  
+  
+session.getTransaction().commit();
+```
+
+
+
+
+# OneToMany
 https://javarush.com/quests/lectures/questhibernate.level13.lecture02
+
+
+![[Pasted image 20250705185629.png]]
+
+
+
+
 
 
 
@@ -1110,10 +1389,172 @@ Hibernate'у говорим: "Это **один ко многим** — одна
 - Таблица `company` **не будет иметь списка пользователей** напрямую — это логика реализуется через связи в Java-коде.
 
 
+### Еще пример:
+
+Есть классы Person и Item. У них отношение OneToMany, то есть один человек может иметь множество предметов, и множество предметов могут иметь одного человека.
+
+Сначала пропишем класс Item:
+```java
+@Data  
+@NoArgsConstructor  
+@Entity  
+@Table(name="item")  
+public class Item {  
+    @Id  
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  
+    @Column(name="id")  
+    private int id;  
+  
+    @Column(name="item_name")  
+    private String itemName;  
+  
+    @ManyToOne  
+    @JoinColumn(name="person_id", referencedColumnName = "id")  
+    private Person owner;  
+  
+  
+    public Item(String itemName) {  
+        this.itemName = itemName;  
+    }  
+}
+```
+
+Поле `owner` показывает владельца этой вещи. Над этим полем я поставил аннотацию `@ManyToOne` которая показывает отношение. Далее поставил аннотацию `@JoinColumn`
+В этой аннотации поля `name` - это имя этого поля в таблице, а `referencedColumnName` это название поля в таблице Person на которую ссылается это поле.
+
+
+Теперь пропишем класс Person:
+```java
+@Data  
+@NoArgsConstructor  
+@Entity  
+@Table(name="person")  
+public class Person {  
+    @Id  
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  
+    @Column(name="id")  
+    private int id;  
+  
+    @Column(name="name")  
+    private String name;  
+  
+    @Column(name="age")  
+    private int age;  
+  
+    @OneToMany(mappedBy = "owner")  
+    private List<Item> items;  
+  
+    public Person(String name, int age) {  
+        this.name = name;  
+        this.age = age;  
+    }  
+  
+    @Override  
+    public String toString() {  
+        return this.name + " " + this.age;  
+    }  
+}
+```
+
+
+Здесь есть поле `items` которая имеет тип листа. Над этим полем я повесил аннотацию `@OneToMany`. Поле `mappedBy` в этой аннотации означает поле в таблицу Item которая связана с этой таблицей.
+
+
+## Добавление новых строк при связи OneToMany
+
+
+```java
+session.beginTransaction();  
+  
+Person person = session.get(Person.class, 2);  
+  
+Item newItem = new Item("Item from hibernate", person); // создаем item
+person.getItems().add(newItem);  // и добавляем также этот предмет в person
+  
+session.save(newItem);  
+  
+session.getTransaction().commit();
+```
+
+
+Хорошей практикой считается добавлять с двух сторон. То есть здесь я создал предмет, и перед тем как сохранить его в БД я его также добавляю в список предметов этого person которому принадлежит предмет. Это нужно из-за того что Hibernate кэширует данные, и этот список предметов может быть не актуальным даже после вызова метода `save` 
+
+
+Вот еще один пример:
+```java
+session.beginTransaction();  
+  
+Person person = new Person("Alex", 33);  
+Item newItem = new Item( "Some item", person );  
+person.setItems(new ArrayList<>(Collections.singletonList(newItem)));  
+  
+session.save( person );  
+session.save( newItem );  
+  
+session.getTransaction().commit();
+```
+
+
+Здесь уже создается новый человек и новый предмет. В список предметов создается новый список и добавляется один предмет. И далее эти объекты сохраняются в БД.
 
 
 
-## Cascade types with collections
+
+
+## Удаление объектов
+
+
+```java
+session.beginTransaction();  
+  
+Person person = session.get(Person.class, 3);  
+List<Item> items = person.getItems();  
+  
+// SQL  
+for (Item item : items) {  
+    session.remove(item);  
+}  
+  
+// Не порождает SQL, но необходимо чтобы в кэше все было правильно  
+person.getItems().clear();  
+  
+session.getTransaction().commit();
+```
+
+
+
+## Изменение объектов
+
+
+```java
+session.beginTransaction();  
+  
+Person person = session.get(Person.class, 4);  
+Item item = session.get(Item.class, 1);  
+  
+item.getOwner().getItems().remove(item);  
+  
+// SQL  
+item.setOwner(person);  
+  
+person.getItems().add(item);  
+  
+  
+session.getTransaction().commit();
+```
+
+
+1. Получаем человека, которого хотим сделать владельцем предмета
+2. Получаем предмет, которому хотим назначить нового владельца
+3. `item.getOwner().getItems().remove(item);` - получаем владельца предмета, вызываем у него метод для получения всех его предметов и удаляем этот предмет. 
+4. `item.setOwner(person);` - изменяем владельца
+5. `person.getItems().add(item);` - к этому владельцу добавляем в список этот предмет
+
+
+
+
+
+# Cascade types with collections
 
 
 Допустим есть класс Company:
@@ -1144,8 +1585,14 @@ public void addUser(User user) {
 
 
 
-## Many To Many
+# Many To Many
 https://javarush.com/quests/lectures/questhibernate.level13.lecture03
+
+
+![[Pasted image 20250707235019.png]]
+
+
+
 
 
 Я опущу в примерах существующие поля, зато добавлю новые. Вот как они будут выглядеть. Класс Employee:
@@ -1194,8 +1641,159 @@ class EmployeeTask {
 Мы фактически с помощью аннотаций описали какие данные содержатся в таблице employee_task и как Hibernate должен их интерпретировать.
 
 
-## One To One
+
+### Пример: у меня есть три таблицы: Actors, Movies и Actors_Movies и нужно составить отношение многие-ко-многим
+
+
+Сначала создаю класс Actor:
+```java
+@Getter  
+@Setter  
+@NoArgsConstructor  
+@Entity  
+@Table(name="Actor")  
+public class Actor {  
+    @Id  
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  
+    @Column(name="actor_id")  
+    private int id;  
+  
+    private String name;  
+  
+    private int age;  
+  
+    @ManyToMany  
+    @JoinTable(  
+            name="Actor_Movie",  
+            joinColumns = @JoinColumn(name="actor_id"),  
+            inverseJoinColumns = @JoinColumn(name="movie_id")  
+    )  
+    private List<Movie> movies;  
+}
+```
+
+
+В этом классе описываю отношение:
+```java
+@ManyToMany  
+@JoinTable(  
+	name="Actor_Movie",  
+    joinColumns = @JoinColumn(name="actor_id"),  
+    inverseJoinColumns = @JoinColumn(name="movie_id")  
+) 
+```
+
+
+Аннотация `@JoinTable` показывает как именно нужно рассматривать это отношение.
+Поле `name` означает таблицу, в которой описывается данное отношение.
+Поле `joinColumns` обозначает id для сущности Actor в данной таблице.
+Поле `inverseJoinColumns` обозначает id для сущности Movie.
+
+
+Теперь можно создать класс `Movie`:
+```java
+@Getter  
+@Setter  
+@NoArgsConstructor  
+@Entity  
+@Table(name="Movie")  
+public class Movie {  
+    @Id  
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  
+    @Column(name="movie_id")  
+    private int id;  
+  
+    private String name;  
+  
+    @Column(name="year_of_production")  
+    private int yearOfProduction;  
+  
+    @ManyToMany(mappedBy = "movies")  
+    private List<Actor> actors;  
+}
+```
+
+
+Здесь отношение описывается проще:
+```java
+@ManyToMany(mappedBy = "movies")  
+private List<Actor> actors; 
+```
+
+Здесь просто содержится ссылка на поле в классе Actor которое описывает данное отношение.
+
+
+
+Вот пример с созданием одного фильма и двух актеров:
+```java
+session.beginTransaction();  
+  
+Movie movie = new Movie("Pulp fiction", 1994);  
+Actor actor1 = new Actor("Harvey Keitel", 81);  
+Actor actor2 = new Actor("Samuel L. Jackson", 72);  
+  
+movie.setActors(new ArrayList<>(List.of(actor1, actor2)));  
+  
+actor1.setMovies(new ArrayList<>(List.of(movie)));  
+actor2.setMovies(new ArrayList<>(List.of(movie)));  
+  
+  
+session.save(movie);  
+  
+session.save(actor1);  
+session.save(actor2);  
+  
+session.getTransaction().commit();
+```
+
+
+Вывести всех актеров у фильма:
+```java
+session.beginTransaction();  
+  
+Movie movie = session.get(Movie.class, 1);  
+System.out.println(movie.getActors());  
+  
+session.getTransaction().commit();
+```
+
+
+Создать новый фильм и связать его с существующим актером:
+```java
+session.beginTransaction();  
+  
+Movie movie = new Movie("Reservoir Dogs", 1992);  
+Actor actor = session.get(Actor.class, 1);  
+  
+movie.setActors(new ArrayList<>(List.of(actor)));  
+  
+actor.getMovies().add(movie);  
+  
+session.save(movie);  
+  
+session.getTransaction().commit();
+```
+
+
+Удаление у актера фильма и у фильма этого актера соотвественно:
+```java
+session.beginTransaction();  
+  
+Actor actor = session.get(Actor.class, 2);  
+System.out.println(actor.getMovies());  
+  
+Movie movieToRemove = actor.getMovies().get(0);  
+  
+actor.getMovies().remove(movieToRemove);  
+movieToRemove.getActors().remove(actor);  
+  
+session.getTransaction().commit();
+```
+
+
+# One To One
 https://javarush.com/quests/lectures/questhibernate.level13.lecture04
+
 
 В случае же с Entity-классами могут быть варианты, которые описываются несколькими аннотациями:
 
@@ -1205,9 +1803,197 @@ https://javarush.com/quests/lectures/questhibernate.level13.lecture04
 - @MapsId
 
 
+![[Pasted image 20250707132144.png]]
 
 
-## HQL
+
+
+
+### Пример: есть сущность Person и сущность Passport, у них отношение один-к-одному. Вот как будет выстраиваться это отношение
+
+Сначала создадим класс `Passport`:
+```java
+@Data  
+@NoArgsConstructor  
+@Entity  
+@Table(name="passport")  
+public class Passport implements Serializable {  
+  
+    @Id  
+    @OneToOne()  
+    @JoinColumn(name="person_id", referencedColumnName = "id")  
+    private Person person;  
+  
+    @Column(name="passport_number")  
+    private int passportNumber;  
+  
+  
+    public Passport(Person person, int passportNumber) {  
+        this.person = person;  
+        this.passportNumber = passportNumber;  
+    }  
+  
+    @Override  
+    public String toString() {  
+        return "Passport{" +  
+                "passportNumber=" + passportNumber +  
+                '}';  
+    }  
+}
+```
+
+Здесь первичный ключ это также внешний ключ, поэтому нужно имплементировать интерфейс `Serializable`
+
+```java
+@Id  
+@OneToOne()  
+@JoinColumn(name="person_id", referencedColumnName = "id")  
+private Person person; 
+```
+
+Здесь поле помечается аннотацией `@OneToOne` и `@JoinColumn`. `name` показывает название этого поля, а `id` - поле в сущности Person на которое оно ссылается.
+
+
+Теперь создадим класс `Person`:
+```java
+@Data  
+@NoArgsConstructor  
+@Entity  
+@Table(name="person")  
+public class Person {  
+    @Id  
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  
+    @Column(name="id")  
+    private int id;  
+  
+    @Column(name="name")  
+    private String name;  
+  
+    @Column(name="age")  
+    private int age;  
+  
+    @OneToOne(mappedBy = "person")  
+    @Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)  
+    private Passport passport;  
+  
+    public Person(String name, int age) {  
+        this.name = name;  
+        this.age = age;  
+    }  
+  
+    @Override  
+    public String toString() {  
+        return this.name + " " + this.age;  
+    }  
+}
+```
+
+
+В классе есть поле `passport` которое хранит паспорт:
+```java
+@OneToOne(mappedBy = "person")  
+@Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)  
+private Passport passport;  
+```
+
+
+Здесь просто указал на какое поле в классе `Passport` ссылается это поле и также настроил каскадирование, что при сохранении человека также будет сохраняться паспорт.
+
+
+И вот так будет выглядеть сохранение человека и паспорта:
+```java
+session.beginTransaction();  
+  
+Person person = new Person("Test person", 23);  
+Passport passport = new Passport(person, 12345);  
+  
+person.setPassport(passport);  
+  
+session.save(person);  
+  
+session.getTransaction().commit();
+```
+
+
+Также вместо того чтобы назначать в конструкторе человека, можно в методе у человека который назначает паспорт сразу задать назначение паспорту человека:
+```java
+public void setPassport(Passport passport) {  
+    this.passport = passport;  
+    passport.setPerson(this);  
+}
+```
+
+И тогда сохранение будет выглядеть так:
+```java
+session.beginTransaction();  
+  
+Person person = new Person("Test person", 23);  
+Passport passport = new Passport(12345);  
+  
+person.setPassport(passport);  
+  
+session.save(person);  
+  
+session.getTransaction().commit();
+```
+
+
+
+
+
+![[Pasted image 20250707135246.png]]
+
+
+
+Для этого нужно изменить таблицу Passport, добавил туда id и сделав поле person_id уникальным:
+```sql
+create table passport (  
+    id int primary key generated by default as identity ,  
+    passport_number int not null ,  
+    person_id int unique references person(id) on delete cascade  
+);
+```
+
+
+Ну и поменять класс `Passport`:
+```java
+@Data  
+@NoArgsConstructor  
+@Entity  
+@Table(name="passport")  
+public class Passport {  
+  
+    @Id  
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  
+    private int id;  
+  
+    @Column(name="passport_number")  
+    private int passportNumber;  
+  
+    @OneToOne  
+    @JoinColumn(name="person_id", referencedColumnName = "id")  
+    private Person person;  
+  
+    public Passport(int passportNumber) {  
+        this.passportNumber = passportNumber;  
+    }  
+  
+    @Override  
+    public String toString() {  
+        return "Passport{" +  
+                "passportNumber=" + passportNumber +  
+                '}';  
+    }  
+}
+```
+
+
+
+
+
+
+
+# HQL
 
 
 ### Знакомство с HQL
@@ -1345,6 +2131,352 @@ class EmployeeTask
    public Date deadline;
 }
 ```
+
+
+
+
+
+
+
+# Ленивая загрузка
+
+
+
+![[Pasted image 20250708165315.png]]
+
+
+![[Pasted image 20250708165424.png]]
+
+
+
+![[Pasted image 20250708165626.png]]
+
+
+
+
+
+#### То есть при ленивой загрузке связанные сущности не подгружаются, если к ним не обращаются напрямую или их напрямую не подгружают, в отличие от не ленивой загрузки.
+
+
+#### Также при не ленивой загрузки можно данные использовать вне сессии и вне транзакции, в отличие от ленивой. Чтобы вне сессии использовать данные при ленивой загрузке необходимо их подгрузить. Например, использовать команду `Hibernate.initialize()` в транзакции 
+
+```java
+Hibernate.initialize(person.getItems());
+```
+
+
+
+
+
+
+
+
+# Spring приложение с Hibernate
+
+[[spring|Spring]]
+
+
+
+
+В класс `SpringConfig` нужно добавить аннотации:
+```java
+@PropertySource("classpath:hibernate.properties")  
+@EnableTransactionManagement
+```
+
+
+И подправить `DataSource`:
+```java
+@Bean  
+public DataSource dataSource() {  
+    DriverManagerDataSource dataSource = new DriverManagerDataSource();  
+  
+    dataSource.setDriverClassName(Objects.requireNonNull(environment.getProperty("hibernate.driver_class")));  
+    dataSource.setUrl(environment.getProperty("hibernate.connection.url"));  
+    dataSource.setUsername(environment.getProperty("hibernate.connection.username"));  
+    dataSource.setPassword(environment.getProperty("hibernate.connection.password"));  
+  
+    return dataSource;  
+}
+```
+
+
+
+И теперь вместо JdbcTemplate нужно добавить:
+```java
+private Properties hibernateProperties() {  
+    Properties properties = new Properties();  
+    properties.put("hibernate.dialect", environment.getRequiredProperty("hibernate.dialect"));  
+    properties.put("hibernate.show_sql", environment.getRequiredProperty("hibernate.show_sql"));  
+  
+    return properties;  
+}  
+  
+@Bean  
+public LocalSessionFactoryBean sessionFactory() {  
+    LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();  
+    sessionFactory.setDataSource(dataSource());  
+    sessionFactory.setPackagesToScan("ru.alishev.springcourse.models");  
+    sessionFactory.setHibernateProperties(hibernateProperties());  
+  
+    return sessionFactory;  
+}  
+  
+@Bean  
+public PlatformTransactionManager hibernateTransactionManager() {  
+    HibernateTransactionManager transactionManager = new HibernateTransactionManager();  
+    transactionManager.setSessionFactory(sessionFactory().getObject());  
+  
+    return transactionManager;  
+}
+```
+
+
+
+Теперь сначала нужно поменять класс Person чтобы он был сущностью Hibernate:
+```java
+@Getter  
+@Setter  
+@NoArgsConstructor  
+@Entity  
+@Table(name="person")  
+public class Person {  
+    @Id  
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  
+    private Integer id;  
+  
+    @NotEmpty(message="Name should not be empty")  
+    @Size(min=2, max=30, message = "Name should be between 2 and 30")  
+    private String name;  
+  
+    @Min(value = 0, message="Age should be greater than zero")  
+    private Integer age;  
+  
+    @NotEmpty(message="Email should not be empty")  
+    @Email(message="Incorrect email!")  
+    private String email;  
+  
+    public Person(String name, Integer age, String email) {  
+        this.name = name;  
+        this.age = age;  
+        this.email = email;  
+    }  
+}
+```
+
+
+И поменять DAO, нужно внедрить объект `SessionFactory` ну и поменять методы.
+
+Сначала поменяем метод index():
+```java
+@Transactional  
+public List<Person> index() {  
+    Session session = sessionFactory.getCurrentSession();  
+  
+    List<Person> people = session.createQuery("from Person", Person.class).getResultList();  
+  
+    return people;  
+}
+```
+
+
+Хорошей практикой считается то, когда мы помечаем методы где только читаем `@Transactional(readOnly=true)`
+
+
+
+Метод `show(Integer id)`:
+```java
+@Transactional(readOnly = true)  
+public Optional<Person> show(Integer id) {  
+    Session session = sessionFactory.getCurrentSession();  
+  
+    return Optional.ofNullable(session.get(Person.class, id));  
+}
+```
+
+
+Метод `show(String email)`:
+```java
+@Transactional(readOnly = true)  
+public Optional<Person> show(String email) {  
+    Session session = sessionFactory.getCurrentSession();  
+  
+    return session.createQuery("from Person where email = :email", Person.class).setParameter("email", email).getResultList()  
+            .stream().findFirst();  
+  
+}
+```
+
+
+
+Метод `save()`:
+```java
+@Transactional  
+public void save(Person person) {  
+    sessionFactory.getCurrentSession().persist(person);  
+}
+```
+
+
+Метод `update()`:
+```java
+@Transactional  
+public void update(Integer id, Person person) {  
+    Person updatePerson = sessionFactory.getCurrentSession().get(Person.class, id);  
+    if (updatePerson != null) {  
+        updatePerson.setEmail(person.getEmail());  
+        updatePerson.setName(person.getName());  
+        updatePerson.setAge(person.getAge());  
+    }  
+}
+```
+
+
+Метод `delete()`:
+```java
+@Transactional  
+public void delete(Integer id) {  
+    Session session = sessionFactory.getCurrentSession();  
+    Person person = session.get(Person.class, id);  
+    if (person != null) {  
+        session.remove(person);  
+    }  
+}
+```
+
+
+
+
+
+
+
+
+# Дата и время в Hibernate
+
+
+
+Для обозначения даты и времени в Hibernate используется аннотация `@Temporal()`:
+```java
+@Temporal(TemporalType.DATE)
+private Date date;
+```
+
+это для типа `Date`. Для типа `Timestamp` будет выглядеть так:
+```java
+@Temporal(TemporalType.TIMESTAMP)
+```
+
+Также нужно добавить аннотацию `@DateTimeFormat` и передать паттерн по которому нужно вводить дату:
+```java
+@Temporal(TemporalType.DATE)
+@DateTimeFormat(pattern = "dd/MM/yyyy")
+private Date dat
+```
+
+
+
+
+
+
+
+
+# Перечисления (Enum) в Hibernate
+
+
+
+
+Чтобы сохранить Enum в БД с помощью Hibernate нужно использовать аннотацию `@Enumerated()` и в скобках указать способ сохранения.
+
+- `EnumType.ORDINAL` - сохранение индексов 
+- `EnumType.STRING` - сохранение названия
+
+
+
+
+
+# Проблема N + 1
+
+
+![[Pasted image 20250710162606.png]]
+
+
+
+![[Pasted image 20250710162725.png]]
+
+
+Пример с решением этой проблемы:
+![[Pasted image 20250710163737.png]]
+
+
+
+
+
+
+
+
+# Методы get() и load()
+
+
+
+![[Pasted image 20250710164114.png]]
+
+
+
+
+![[Pasted image 20250710164144.png]]
+
+
+
+
+![[Pasted image 20250710164338.png]]
+
+
+
+
+
+
+
+
+
+
+# Пагинация и сортировка 
+
+
+
+![[Pasted image 20250710164742.png]]
+
+
+![[Pasted image 20250710164909.png]]
+
+
+
+![[Pasted image 20250710164934.png]]
+
+
+
+
+
+
+
+
+
+
+
+# Аннотация @Transient
+
+
+
+![[Pasted image 20250710165017.png]]
+
+
+
+### Пример:
+
+![[Pasted image 20250710165051.png]]
+
+
+
+
 
 
 

@@ -800,7 +800,7 @@ private void registerHiddenFieldFilter(ServletContext aContext) {
 ```
 
 
-И создать метод контроллера который принимает PATH-запросы;
+И создать метод контроллера который принимает PATCH-запросы;
 ```java
 @PatchMapping("/{id}")  
 public String update(@ModelAttribute("person") Person person,  
@@ -1368,7 +1368,7 @@ public DataSource dataSource() {
 
 
 
-# Пакетное обновление (Bath update)
+# Пакетное обновление (Batch update)
 
 
 
