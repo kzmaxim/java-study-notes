@@ -5,9 +5,40 @@
 
 
 
+![[Pasted image 20250711234942.png]]
+
+
+![[Pasted image 20250711235128.png]]
+
+
+![[Pasted image 20250711235222.png]]
+
+
+![[Pasted image 20250711235341.png]]
+
+
+
+![[Pasted image 20250711235522.png]]
+
+
+
+
+
+
+
 **Spring Boot Starters** - обычные зависимости (jars), которые добавляют нужный функционал в проект и следуют определенному шаблону наименования: spring-boot-starter-*
 
 
+![[Pasted image 20250711235618.png]]
+
+
+![[Pasted image 20250711235705.png]]
+
+
+
+Все настройки сохраняются в одном файле `application.properties`
+
+Шаблоны (например Thymeleaf) лежат в папке `templates`
 
 
 
@@ -324,6 +355,48 @@ public class DatabaseProperties {
 
 
 
+
+
+
+
+
+# Консольный запуск Spring Boot приложения
+
+
+`./mvnw package` - собрать проект если нет maven на сервере
+
+И далее перейти в папку `target` и ввести команду:
+```shell
+java -jar name-of-your-jar-file.jar
+```
+
+
+
+
+
+# Более сложное Spring Boot приложение
+
+
+Сначала устанавливаем конфигурацию в `application.properties`:
+
+```shell
+spring.application.name=spring-crud-app-boot  
+  
+# Конфигурация источника данных (Data source)  
+spring.datasource.driver-class-name=org.postgresql.Driver  
+spring.datasource.url=jdbc:postgresql://localhost:5432/practice  
+spring.datasource.username=maxim  
+spring.datasource.password=3maxim14  
+  
+  
+# Конфигурация Hibernate  
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect  
+spring.jpa.properties.hibernate.show_sql=true  
+  
+  
+# Чтобы работали HTTP методы PUT, PATCH, DELETE  
+spring.mvc.hiddenmethod.filter.enabled=true
+```
 
 
 

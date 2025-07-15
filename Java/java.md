@@ -27,4 +27,5 @@
 	- [[spring_data_jpa|Spring Data JPA]]
 	- [[spring_boot_guide|Spring Boot Guide]]
 	- [[spring_mvc|Spring MVC]]
+	- [[spring_security|Spring Security]]
 

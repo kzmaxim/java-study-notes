@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "hibernate.md",
+                "file": "spring_security.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "hibernate"
+              "title": "spring_security"
             }
           }
         ]
@@ -172,29 +172,30 @@
   },
   "active": "c602dc7775ed07bf",
   "lastOpenFiles": [
-    "Pasted image 20250710165051.png",
-    "Pasted image 20250710165017.png",
-    "Pasted image 20250710164934.png",
-    "Pasted image 20250710164909.png",
-    "Pasted image 20250710164742.png",
-    "Pasted image 20250710164338.png",
-    "Pasted image 20250710164144.png",
-    "Pasted image 20250710164114.png",
-    "Pasted image 20250710163737.png",
-    "Pasted image 20250710162725.png",
-    "Pasted image 20250710162606.png",
-    "spring_data_jpa.md",
-    "hibernate.md",
+    "Pasted image 20250715123747.png",
+    "Pasted image 20250715123633.png",
+    "Pasted image 20250715123511.png",
+    "Pasted image 20250714184415.png",
+    "Pasted image 20250714184127.png",
+    "Pasted image 20250714183112.png",
+    "Pasted image 20250714183022.png",
+    "Pasted image 20250714182854.png",
+    "Pasted image 20250714182833.png",
+    "Pasted image 20250714182112.png",
+    "Pasted image 20250714163558.png",
     "spring_mvc.md",
+    "spring_security.md",
+    "spring_boot.md",
+    "spring_data_jpa.md",
+    "spring.md",
+    "java.md",
+    "Пустой документ",
+    "hibernate.md",
     "mockito.md",
     "junit5.md",
-    "spring_boot.md",
-    "spring.md",
     "spring_core.md",
-    "java.md",
     "string.md",
     "maven.md",
-    "Пустой документ",
     "spring_data_jpa",
     "spring_boot_guide.md",
     "java_util_functions.md",
@@ -209,7 +210,6 @@
     "oop.md",
     "Optiinal.md",
     "methods.md",
-    "objects.md",
-    "Welcome.md"
+    "objects.md"
   ]
 }
